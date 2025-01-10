@@ -63,9 +63,57 @@ def create_service_file():
         logger.error(f"Fehler beim Erstellen der Service-Datei: {e}")
         raise
 
+def install_xpadneo():
+    """Installiert den xpadneo Treiber wenn nicht vorhanden"""
+    try:
+        # Prüfen ob xpadneo bereits installiert ist
+        result = subprocess.run(['dkms', 'status'], capture_output=True, text=True)
+        if 'xpadneo' in result.stdout:
+            logger.info("xpadneo ist bereits installiert")
+            return True
+
+        logger.info("Installiere xpadneo Treiber...")
+
+        # Temporäres Verzeichnis erstellen
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # xpadneo klonen
+            subprocess.run([
+                'git', 'clone',
+                'https://github.com/atar-axis/xpadneo.git',
+                temp_dir
+            ], check=True)
+
+            # Installation ausführen
+            subprocess.run(
+                ['sudo', './install.sh'],
+                cwd=temp_dir,
+                check=True
+            )
+
+        logger.info("xpadneo Treiber erfolgreich installiert")
+        logger.warning("Ein Systemneustart wird empfohlen!")
+        return True
+
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Fehler bei xpadneo Installation: {e}")
+        return False
+
 def install_service():
     """Installiert und aktiviert den Service"""
     try:
+        # Systemabhängigkeiten prüfen/installieren
+        subprocess.run([
+            'apt-get', 'install', '-y',
+            'raspberrypi-kernel-headers',
+            'dkms',
+            'git'
+        ], check=True)
+
+        # xpadneo installieren
+        if not install_xpadneo():
+            logger.error("xpadneo Installation fehlgeschlagen")
+            return False
+
         configure_bluetooth()
         create_service_file()
 
@@ -78,9 +126,14 @@ def install_service():
         subprocess.run(['systemctl', 'start', 'xbox-switch-bridge'])
 
         logger.info("Service erfolgreich installiert und gestartet")
+
+        # Neustart empfehlen wenn xpadneo neu installiert wurde
+        logger.info("Installation abgeschlossen! Ein Systemneustart wird empfohlen.")
+        return True
+
     except Exception as e:
         logger.error(f"Installation fehlgeschlagen: {e}")
-        raise
+        return False
 
 def uninstall_service():
     """Deinstalliert den Service"""

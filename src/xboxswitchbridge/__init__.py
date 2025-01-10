@@ -3,8 +3,8 @@
 from .bridge import XboxSwitchBridge
 from .service import install_service, uninstall_service, check_service_status
 
-__version__ = "0.1.0"
-__author__ = "Your Name"
-__email__ = "your.email@example.com"
+__version__ = "0.2.0"
+__author__ = "Leonardo Carta"
+__email__ = "leonardo@carta.vision"
 
 __all__ = ['XboxSwitchBridge', 'install_service', 'uninstall_service', 'check_service_status']

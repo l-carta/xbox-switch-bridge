@@ -41,7 +41,7 @@ sudo reboot
 
 1. Install the package:
 ```bash
-pip install xbox-switch-bridge
+sudo pip install xbox-switch-bridge
 ```
 
 2. Run the post-installation setup:
@@ -102,7 +102,7 @@ ls /sys/module/xpadneo
 
 ```bash
 sudo xbox-switch-bridge --uninstall
-pip uninstall xbox-switch-bridge
+sudo pip uninstall xbox-switch-bridge
 ```
 
 To also remove xpadneo:

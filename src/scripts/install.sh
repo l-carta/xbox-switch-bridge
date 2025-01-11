@@ -47,26 +47,7 @@ systemctl restart bluetooth
 
 # Install systemd service
 echo "Installing systemd service..."
-cat > /etc/systemd/system/xbox-switch-bridge.service << 'EOF'
-[Unit]
-Description=Xbox to Nintendo Switch Controller Bridge
-After=bluetooth.service
-Wants=bluetooth.service
-
-[Service]
-Type=simple
-User=root
-Group=root
-ExecStart=/usr/local/bin/xbox-switch-bridge --run
-Environment=PYTHONPATH=/opt/xbox-switch-bridge/lib/python3.9/site-packages
-Restart=on-failure
-RestartSec=5
-StandardOutput=append:/var/log/xbox-switch-bridge.log
-StandardError=append:/var/log/xbox-switch-bridge.log
-
-[Install]
-WantedBy=multi-user.target
-EOF
+cp data/systemd/xbox-switch-bridge.service /etc/systemd/system/
 
 systemctl daemon-reload
 systemctl enable xbox-switch-bridge

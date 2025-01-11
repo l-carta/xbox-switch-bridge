@@ -3,28 +3,21 @@ import subprocess
 import logging
 from pathlib import Path
 import shutil
+import pkg_resources
 
 logger = logging.getLogger(__name__)
 
 SYSTEMD_SERVICE_PATH = "/etc/systemd/system/xbox-switch-bridge.service"
-SERVICE_CONTENT = """[Unit]
-Description=Xbox to Nintendo Switch Controller Bridge
-After=bluetooth.service
-Wants=bluetooth.service
 
-[Service]
-Type=simple
-User=root
-Group=root
-ExecStart=/usr/local/bin/xbox-switch-bridge
-Restart=on-failure
-RestartSec=5
-StandardOutput=append:/var/log/xbox-switch-bridge.log
-StandardError=append:/var/log/xbox-switch-bridge.log
-
-[Install]
-WantedBy=multi-user.target
-"""
+def get_service_content():
+    """Liest den Service-Content aus der data/systemd/ Datei"""
+    try:
+        service_path = pkg_resources.resource_filename('xboxswitchbridge', 'data/systemd/xbox-switch-bridge.service')
+        with open(service_path, 'r') as f:
+            return f.read()
+    except Exception as e:
+        logger.error(f"Fehler beim Lesen der Service-Datei: {e}")
+        raise
 
 def configure_bluetooth():
     """Konfiguriert Bluetooth für die Bridge"""
@@ -56,8 +49,9 @@ def configure_bluetooth():
 def create_service_file():
     """Erstellt die Systemd Service Datei"""
     try:
+        service_content = get_service_content()
         with open(SYSTEMD_SERVICE_PATH, 'w') as f:
-            f.write(SERVICE_CONTENT)
+            f.write(service_content)
         logger.info("Service-Datei erstellt")
     except Exception as e:
         logger.error(f"Fehler beim Erstellen der Service-Datei: {e}")

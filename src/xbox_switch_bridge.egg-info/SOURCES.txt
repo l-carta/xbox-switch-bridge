@@ -4,6 +4,7 @@ README.md
 pyproject.toml
 requirements.txt
 setup.cfg
+data/systemd/xbox-switch-bridge.service
 src/scripts/install.sh
 src/scripts/uninstall.sh
 src/xbox_switch_bridge.egg-info/PKG-INFO

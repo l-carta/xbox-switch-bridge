@@ -11,6 +11,7 @@ import nxbt
 import re
 import time
 import threading
+import subprocess
 
 class XboxSwitchBridge:
     def __init__(self):
@@ -18,6 +19,11 @@ class XboxSwitchBridge:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
         logging.getLogger("nxbt").setLevel(logging.WARNING)
+
+        # Bluetooth-Setup
+        if not self.setup_bluetooth():
+            self.logger.error("Bluetooth-Setup fehlgeschlagen!")
+            sys.exit(1)
 
         # Controller Setup
         self.nx = nxbt.Nxbt()
@@ -37,6 +43,33 @@ class XboxSwitchBridge:
         # Thread Control
         self.keep_running = True
         signal.signal(signal.SIGINT, self.signal_handler)
+
+    def setup_bluetooth(self):
+        """Einfaches Bluetooth-Setup"""
+        try:
+            # Bluetooth neu starten
+            self.logger.info("Stoppe Bluetooth...")
+            subprocess.run(['sudo', 'systemctl', 'stop', 'bluetooth'], check=True)
+            time.sleep(1)
+
+            # HCI-Reset
+            self.logger.info("Konfiguriere HCI...")
+            subprocess.run(['sudo', 'hciconfig', 'hci0', 'down'], check=True)
+            time.sleep(1)
+            subprocess.run(['sudo', 'hciconfig', 'hci0', 'up'], check=True)
+            time.sleep(1)
+
+            # Bluetooth starten
+            self.logger.info("Starte Bluetooth...")
+            subprocess.run(['sudo', 'systemctl', 'start', 'bluetooth'], check=True)
+            time.sleep(2)
+
+            self.logger.info("Bluetooth-Setup abgeschlossen")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Fehler beim Bluetooth-Setup: {e}")
+            return False
 
     def signal_handler(self, sig, frame):
         """Behandelt STRG+C"""
@@ -142,8 +175,8 @@ class XboxSwitchBridge:
         try:
             self.controller_index = self.nx.create_controller(
                 nxbt.PRO_CONTROLLER,
-                colour_body=[0, 0, 255],  # Blaue Farbe
-                colour_buttons=[255, 255, 255]  # Weiße Buttons
+                colour_body=[64, 252, 132],
+                colour_buttons=[255, 255, 255]
             )
             self.logger.info("Warte auf Switch Verbindung...")
             self.nx.wait_for_connection(self.controller_index)

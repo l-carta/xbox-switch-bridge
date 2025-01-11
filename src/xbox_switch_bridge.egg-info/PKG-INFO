@@ -1,21 +1,24 @@
 Metadata-Version: 2.2
 Name: xbox-switch-bridge
-Version: 0.2.0
+Version: 0.3.2
 Summary: Bridge Xbox controller inputs to Nintendo Switch
 Home-page: https://github.com/l-carta/xbox-switch-bridge
 Author: Leonardo Carta
 Author-email: leonardo@carta.vision
 Project-URL: Bug Tracker, https://github.com/l-carta/xbox-switch-bridge/issues
-Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: POSIX :: Linux
 Classifier: Topic :: Games/Entertainment
-Requires-Python: >=3.7
+Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: evdev>=1.4.0
 Requires-Dist: nxbt>=0.1.0
 Requires-Dist: asyncio>=3.4.3
+Requires-Dist: dbus-python>=1.2.16
+Requires-Dist: pygobject>=3.40.0
+Requires-Dist: systemd-python
 
 # Xbox Switch Bridge
 
@@ -60,7 +63,7 @@ sudo reboot
 
 1. Install the package:
 ```bash
-pip install xbox-switch-bridge
+sudo pip install xbox-switch-bridge
 ```
 
 2. Run the post-installation setup:
@@ -121,7 +124,7 @@ ls /sys/module/xpadneo
 
 ```bash
 sudo xbox-switch-bridge --uninstall
-pip uninstall xbox-switch-bridge
+sudo pip uninstall xbox-switch-bridge
 ```
 
 To also remove xpadneo:

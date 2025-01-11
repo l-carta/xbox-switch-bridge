@@ -41,29 +41,65 @@ def run_bridge():
 
 def check_dependencies():
     """Überprüft ob alle notwendigen System-Dependencies installiert sind"""
-    required_packages = ['bluetooth', 'bluez', 'bluez-tools']
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Liste der möglichen Binaries für jedes Paket
+    package_binaries = {
+        'bluetooth': ['bluetoothd', 'bluetooth'],
+        'bluez': ['bluetoothctl', 'hciconfig'],
+        'bluez-tools': ['bt-device', 'bt-adapter']
+    }
+
     missing = []
 
-    try:
-        import evdev
-        import nxbt
-        import dbus
-        import gi
-    except ImportError as e:
-        print(f"Fehlende Python-Pakete: {e}")
-        print("Bitte installieren Sie diese mit:")
-        print("sudo pip install -r requirements.txt")
-        return False
+    # Prüfe zuerst ob die Pakete via dpkg installiert sind
+    for package in package_binaries.keys():
+        try:
+            result = subprocess.run(['dpkg', '-l', package],
+                                 capture_output=True,
+                                 text=True)
+            if "ii" not in result.stdout:
+                logger.debug(f"Paket {package} nicht in dpkg gefunden")
+                missing.append(package)
+                continue
 
-    for package in required_packages:
-        if not shutil.which(package):
+            # Wenn Paket installiert ist, prüfe die zugehörigen Binaries
+            found_binary = False
+            for binary in package_binaries[package]:
+                binary_path = shutil.which(binary)
+                logger.debug(f"Suche nach Binary {binary}: {binary_path}")
+                if binary_path:
+                    found_binary = True
+                    break
+
+            if not found_binary:
+                logger.warning(f"Paket {package} ist installiert, aber keine Binaries gefunden")
+                missing.append(package)
+
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Fehler beim Prüfen von {package}: {e}")
             missing.append(package)
+
+    # Prüfe Python Dependencies
+    python_packages = ['evdev', 'nxbt', 'dbus']
+    for package in python_packages:
+        try:
+            __import__(package)
+        except ImportError as e:
+            logger.error(f"Python Paket {package} fehlt: {e}")
+            print(f"Fehlendes Python-Paket: {package}")
+            print("Bitte installieren Sie die Python-Pakete mit:")
+            print("sudo pip3.9 install -r requirements.txt")
+            return False
 
     if missing:
         print(f"Fehlende System-Pakete: {', '.join(missing)}")
         print("Bitte installieren Sie diese mit:")
         print(f"sudo apt-get install {' '.join(missing)}")
         return False
+
+    logger.info("Alle Dependencies gefunden")
     return True
 
 def main():
